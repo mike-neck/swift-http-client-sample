@@ -22,7 +22,11 @@ class UserHttpResponseHandler: ChannelInboundHandler {
         let httpResponsePart = unwrapInboundIn(data)
         switch httpResponsePart {
         case .head(let httpResponseHeader):
-            NSLog("headers:")
+            NSLog("Status : \(httpResponseHeader.status.code) \(httpResponseHeader.status.reasonPhrase)")
+            NSLog(httpResponseHeader.version.description)
+            if httpResponseHeader.isKeepAlive {
+                NSLog("Connection : Keep-Alive")
+            }
             for (name, value) in httpResponseHeader.headers {
                 NSLog("\(name) : \(value)")
             }
