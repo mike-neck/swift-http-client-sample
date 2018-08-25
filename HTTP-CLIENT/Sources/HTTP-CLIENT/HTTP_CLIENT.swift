@@ -97,7 +97,7 @@ struct GetUrl {
 func name() {
     let semaphore = DispatchSemaphore(value: 0)
 
-    let url = GetUrl(scheme: "http", host: "localhost", port: 8080, path: ["foo"], query: "time_zone=Asia/Tokyo"/*.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryAllowed)*/)
+    let url = GetUrl(scheme: "http", host: "localhost", port: 8080, path: ["foo"], query: "time_zone=Asia/Tokyo")
 
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
