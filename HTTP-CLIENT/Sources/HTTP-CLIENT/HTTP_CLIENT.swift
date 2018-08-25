@@ -83,10 +83,8 @@ struct GetUrl {
         get {
             if let q = query {
                 if let qe = q.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryAllowed) {
-                    NSLog("query: \(qe)")
                     return "?\(qe)"
                 } else {
-                    NSLog("query: \(q)")
                     return "?\(q)"
                 }
             } else {
