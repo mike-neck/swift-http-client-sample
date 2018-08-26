@@ -47,7 +47,13 @@ class UserHttpResponseHandler: ChannelInboundHandler {
 
     func errorCaught(ctx: ChannelHandlerContext, error: Error) {
         NSLog("error caught: \(error)")
-        _ = ctx.channel.close()
+        for symbol in Thread.callStackSymbols {
+            NSLog("\t\(symbol)")
+        }
+        defer {
+            _ = ctx.channel.close()
+        }
+        semaphore.signal()
     }
 }
 
@@ -100,25 +106,23 @@ func name() {
     let url = GetUrl(scheme: "http", host: "localhost", port: 8080, path: ["foo"], query: "time_zone=Asia/Tokyo")
 
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    defer {
+        semaphore.wait()
+        try! eventLoopGroup.syncShutdownGracefully()
+    }
+    let handler = UserHttpResponseHandler(semaphore)
 
-    let future = ClientBootstrap(group: eventLoopGroup)
+    _ = ClientBootstrap(group: eventLoopGroup)
             .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .channelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
             .channelOption(ChannelOptions.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
             .channelInitializer { channel in
                 let pipeline: ChannelPipeline = channel.pipeline
                 _ = pipeline.addHTTPClientHandlers()
-                return pipeline.add(handler: UserHttpResponseHandler(semaphore))
+                return pipeline.add(handler: handler)
             }
             .connect(host: url.host, port: url.portNumber)
             .then({ (channel: Channel) in return runRequest(channel: channel, url: url) })
-    defer {
-        _ = future.then { channel in
-            return channel.close()
-        }
-        try! eventLoopGroup.syncShutdownGracefully()
-    }
-    semaphore.wait()
 }
 
 func runRequest(channel: Channel, url: GetUrl) -> EventLoopFuture<Channel> {
@@ -128,7 +132,7 @@ func runRequest(channel: Channel, url: GetUrl) -> EventLoopFuture<Channel> {
         ("User-Agent", "swift-nio"),
         ("Accept", "application/json")
     ])
-    return channel.writeAndFlush(HTTPClientRequestPart.head(request)).map {
-        channel
-    }
+    NSLog("sending request")
+    _ = channel.write(HTTPClientRequestPart.head(request))
+    return channel.writeAndFlush(HTTPClientRequestPart.end(nil)).map { channel }
 }
