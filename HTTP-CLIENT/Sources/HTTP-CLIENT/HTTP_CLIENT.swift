@@ -57,8 +57,22 @@ class UserHttpResponseHandler: ChannelInboundHandler {
     }
 }
 
+enum Scheme {
+    case http
+    case https
+
+    var port: Int {
+        get {
+            switch (self) {
+            case .http: return 80
+            case .https: return 443
+            }
+        }
+    }
+}
+
 struct GetUrl {
-    let scheme: String
+    let scheme: Scheme
     let host: String
     let port: Int?
     let path: [String]
@@ -74,7 +88,10 @@ struct GetUrl {
 
     var portNumber: Int {
         get {
-            return self.port ?? 80
+            if let number = port {
+                return number
+            }
+            return scheme.port
         }
     }
 
@@ -103,7 +120,7 @@ struct GetUrl {
 func name() {
     let semaphore = DispatchSemaphore(value: 0)
 
-    let url = GetUrl(scheme: "http", host: "localhost", port: 8080, path: ["foo"], query: "time_zone=Asia/Tokyo")
+    let url = GetUrl(scheme: .http, host: "localhost", port: 8080, path: ["foo"], query: "time_zone=Asia/Tokyo")
 
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     defer {
@@ -134,5 +151,7 @@ func runRequest(channel: Channel, url: GetUrl) -> EventLoopFuture<Channel> {
     ])
     NSLog("sending request")
     _ = channel.write(HTTPClientRequestPart.head(request))
-    return channel.writeAndFlush(HTTPClientRequestPart.end(nil)).map { channel }
+    return channel.writeAndFlush(HTTPClientRequestPart.end(nil)).map {
+        channel
+    }
 }

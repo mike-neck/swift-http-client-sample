@@ -12,11 +12,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", from: "1.7.2")
+        ,.package(url: "https://github.com/apple/swift-nio-ssl.git", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "HTTP-CLIENT",
-            dependencies: ["NIO", "NIOHTTP1"]),
+            dependencies: ["NIO", "NIOHTTP1", "NIOOpenSSL"]),
         .testTarget(
             name: "HTTP-CLIENTTests",
             dependencies: ["HTTP-CLIENT"]),
