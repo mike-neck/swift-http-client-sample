@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "HTTP-CLIENT",
     products: [
-        .executable(
-            name: "HTTP-CLIENT",
-            targets: ["HTTP-CLIENT"]),
+        .executable(name: "HTTP-CLIENT", targets: ["HTTP-CLIENT"]),
+        .executable(name: "EchoServer", targets: ["EchoServer"]),
+        .executable(name: "EchoClient", targets: ["EchoClient"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", from: "1.7.2")
@@ -21,5 +21,7 @@ let package = Package(
         .testTarget(
             name: "HTTP-CLIENTTests",
             dependencies: ["HTTP-CLIENT"]),
+        .target(name: "EchoServer", dependencies: ["NIO"]),
+        .target(name: "EchoClient", dependencies: ["NIO"]),
     ]
 )
